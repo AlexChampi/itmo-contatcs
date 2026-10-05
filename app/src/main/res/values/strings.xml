@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Contacts</string>
+    <string name="loading">Loading…</string>
+    <string name="no_contacts">No contacts found</string>
+    <plurals name="contacts_found">
+        <item quantity="one">Found %d contact</item>
+        <item quantity="other">Found %d contacts</item>
+    </plurals>
+
+    <string name="no_permission">No access to contacts</string>
+    <string name="no_permission_message">Allow the app to read your contacts to see them here.</string>
+    <string name="grant_permission">Allow access</string>
+
+    <string name="call_contact">Call</string>
+    <string name="error_no_dialer">No app to make calls</string>
+    <string name="error_no_settings">Can’t open settings</string>
+</resources>

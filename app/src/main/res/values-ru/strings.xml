@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Контакты</string>
+    <string name="loading">Загрузка…</string>
+    <string name="no_contacts">Контакты не найдены</string>
+    <plurals name="contacts_found">
+        <item quantity="one">Найден %d контакт</item>
+        <item quantity="few">Найдено %d контакта</item>
+        <item quantity="many">Найдено %d контактов</item>
+        <item quantity="other">Найдено %d контакта</item>
+    </plurals>
+
+    <string name="no_permission">Нет доступа к контактам</string>
+    <string name="no_permission_message">Разрешите приложению читать контакты, чтобы увидеть их здесь.</string>
+    <string name="grant_permission">Разрешить доступ</string>
+
+    <string name="call_contact">Позвонить</string>
+    <string name="error_no_dialer">Нет приложения для звонков</string>
+    <string name="error_no_settings">Не удалось открыть настройки</string>
+</resources>
