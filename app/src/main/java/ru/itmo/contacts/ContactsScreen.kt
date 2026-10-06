@@ -15,15 +15,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -52,6 +49,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -121,32 +119,38 @@ fun ContactsScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = { CollapsedHeader(isTitleVisible = isHeroScrolledAway) },
         containerColor = OneUiColors.Background,
         contentWindowInsets = WindowInsets.safeDrawing,
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            state = listState,
-            contentPadding = PaddingValues(
-                start = OneUiDimens.ScreenPadding,
-                end = OneUiDimens.ScreenPadding,
-                bottom = OneUiDimens.CardSpacing,
-            ),
         ) {
-            item(key = HERO_KEY, contentType = ItemType.Hero) {
-                Hero(subtitle = heroSubtitle(hasPermission, uiState))
-            }
-            when {
-                !hasPermission -> item(key = PERMISSION_KEY, contentType = ItemType.Permission) {
-                    PermissionCard(onRequestPermission = onRequestPermission)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = PaddingValues(
+                    start = OneUiDimens.ScreenPadding,
+                    end = OneUiDimens.ScreenPadding,
+                    bottom = OneUiDimens.CardSpacing,
+                ),
+            ) {
+                item(key = HERO_KEY, contentType = ItemType.Hero) {
+                    Hero(subtitle = heroSubtitle(hasPermission, uiState))
                 }
+                when {
+                    !hasPermission -> item(key = PERMISSION_KEY, contentType = ItemType.Permission) {
+                        PermissionCard(onRequestPermission = onRequestPermission)
+                    }
 
-                uiState is ContactsUiState.Loaded -> uiState.sections.forEach { section ->
-                    contactSection(section, onContactClick)
+                    uiState is ContactsUiState.Loaded -> uiState.sections.forEach { section ->
+                        contactSection(section, onContactClick)
+                    }
                 }
+            }
+            AnimatedVisibility(visible = isHeroScrolledAway, enter = fadeIn(), exit = fadeOut()) {
+                CollapsedHeader()
             }
         }
     }
@@ -186,28 +190,23 @@ private fun heroSubtitle(hasPermission: Boolean, uiState: ContactsUiState): Stri
     }
 
 @Composable
-private fun CollapsedHeader(isTitleVisible: Boolean, modifier: Modifier = Modifier) {
+private fun CollapsedHeader(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .background(OneUiColors.Background)
-            .windowInsetsPadding(
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
-            )
             .heightIn(min = OneUiDimens.HeaderHeight)
             .padding(horizontal = OneUiDimens.CardSpacing),
         contentAlignment = Alignment.CenterStart,
     ) {
-        AnimatedVisibility(visible = isTitleVisible, enter = fadeIn(), exit = fadeOut()) {
-            Text(
-                text = stringResource(R.string.app_name),
-                modifier = Modifier.semantics { heading() },
-                color = OneUiColors.Ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = OneUiType.HeaderSmall,
-            )
-        }
+        Text(
+            text = stringResource(R.string.app_name),
+            modifier = Modifier.semantics { heading() },
+            color = OneUiColors.Ink,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = OneUiType.HeaderSmall,
+        )
     }
 }
 
@@ -216,7 +215,7 @@ private fun Hero(subtitle: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 24.dp, bottom = 40.dp),
+            .padding(top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -271,7 +270,7 @@ private fun SectionIndex(initial: Char, modifier: Modifier = Modifier) {
         text = initial.toString(),
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
             .semantics { heading() },
         color = OneUiColors.InkMuted,
         style = OneUiType.SectionIndex,
@@ -286,13 +285,18 @@ private fun ContactRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(rowShape(isFirst, isLast))
-            .background(OneUiColors.Surface)
-            .clickable(onClickLabel = stringResource(R.string.call_contact), onClick = onClick),
+            .background(OneUiColors.Surface),
     ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(onClickLabel = stringResource(R.string.call_contact), onClick = onClick)
+                .semantics { contentDescription = contact.name },
+        )
         if (!isFirst) {
             HorizontalDivider(
                 modifier = Modifier.padding(
@@ -311,14 +315,24 @@ private fun ContactRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Avatar(contact = contact)
-            Text(
-                text = contact.name,
-                modifier = Modifier.weight(1f),
-                color = OneUiColors.Ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = OneUiType.ListPrimary,
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = contact.name,
+                    color = OneUiColors.Ink,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = OneUiType.ListPrimary,
+                )
+                if (contact.phoneNumber != contact.name) {
+                    Text(
+                        text = contact.phoneNumber,
+                        color = OneUiColors.InkMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = OneUiType.ListSecondary,
+                    )
+                }
+            }
         }
     }
 }
